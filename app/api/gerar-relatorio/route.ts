@@ -325,6 +325,49 @@ function generateRealisticMockData(startDate: Date, endDate: Date) {
   // Gerar issues do Open Finance
   const ofIssues = Array.from({ length: numOFIssues }, (_, i) => generateIssue("OF", i, ofSummaries, ofDescriptions))
 
+  // Garantir que temos pelo menos um comentário em todas as datas do período selecionado
+  // Função para adicionar comentários em datas sem comentário
+  function addCommentOnRemainingDays(issues: JiraIssue[]) {
+    //Preencher uma lista com todas as datas do período selecionado
+    const totalDays = differenceInDays(endDate, startDate) + 1
+    const dates: Date[] = []
+    for (let i = 0; i < totalDays; i++) {
+      const commentDate = addDays(startDate, i)
+      dates.push(commentDate)
+    }
+    //Verificar quais as datas que já tem comentário
+    const datesWithComment : String[] = []
+    issues
+      .map((issue) => issue.comments)
+      .forEach((commentList) => commentList
+        .forEach((comment) => datesWithComment
+          .push(format(comment.created, "dd/MM/yyyy", { locale: ptBR }))))
+    //Filtrar a lista por datas que estão sem comentário
+    const datesWithoutComment = dates
+      .filter((date) => !datesWithComment
+        .includes(format(date, "dd/MM/yyyy", { locale: ptBR })))
+
+    datesWithoutComment.forEach(dateWithoutComment => {
+      // Selecionar uma issue aleatória
+      const randomIssueIndex = Math.floor(Math.random() * issues.length)
+      const issue = issues[randomIssueIndex]
+      // Selecionar um comentário aleatório
+      const randomCommentIndex = Math.floor(Math.random() * issue.comments.length)
+      const comment = issue.comments[randomCommentIndex]
+
+      issue.comments.push({
+        id: `comment-${Math.floor(Math.random() * 10000)}`,
+        author: authors[Math.floor(Math.random() * authors.length)],
+        created: dateWithoutComment.toISOString(),
+        content: commentContents[Math.floor(Math.random() * commentContents.length)],
+      })
+    })
+  }
+
+  // Adicionar comentários para algumas issues em dias sem comentário
+  if (pixIssues.length > 0) addCommentOnRemainingDays(pixIssues)
+  if (ofIssues.length > 0) addCommentOnRemainingDays(ofIssues)
+
   // Ordenar as issues por data (mais recentes primeiro)
   pixIssues.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
   ofIssues.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
