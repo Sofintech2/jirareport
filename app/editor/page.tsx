@@ -328,7 +328,8 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
       }
       
       .report-subtitle {
-        font-size: 18px;
+        font-weight: bold;
+        font-size: 22px;
         color: #2d3748;
         text-align: center;
         margin-bottom: 24px;
@@ -349,7 +350,8 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
       }
       
       .section-title {
-        font-size: 20px;
+        font-weight: bold;
+        font-size: 22px;
         color: #1a365d;
         margin-top: 32px;
         margin-bottom: 16px;

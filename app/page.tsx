@@ -294,49 +294,6 @@ export default function ReportGenerator() {
           </Alert>
         )}
 
-        {!isCheckingEnv && envStatus && (
-          <>
-            {(!envStatus.javaBackendConfigured || !envStatus.jiraTokenConfigured) && (
-              <Alert variant="warning" className="mb-4 bg-amber-50 border-amber-200">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertTitle className="text-amber-800">Configuração do Jira incompleta</AlertTitle>
-                <AlertDescription className="text-amber-700">
-                  {!envStatus.javaBackendConfigured && !envStatus.jiraTokenConfigured ? (
-                    <>
-                      As variáveis <code className="bg-amber-100 px-1 py-0.5 rounded">JAVA_BACKEND_URL</code> e{" "}
-                      <code className="bg-amber-100 px-1 py-0.5 rounded">JIRA_API_TOKEN</code> não estão configuradas.
-                    </>
-                  ) : !envStatus.javaBackendConfigured ? (
-                    <>
-                      A variável <code className="bg-amber-100 px-1 py-0.5 rounded">JAVA_BACKEND_URL</code> não está
-                      configurada.
-                    </>
-                  ) : (
-                    <>
-                      A variável <code className="bg-amber-100 px-1 py-0.5 rounded">JIRA_API_TOKEN</code> não está
-                      configurada.
-                    </>
-                  )}{" "}
-                  O aplicativo usará dados de exemplo.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {envStatus.javaBackendConfigured && envStatus.jiraTokenConfigured && !envStatus.jiraAccessible && (
-              <Alert variant="warning" className="mb-4 bg-amber-50 border-amber-200">
-                <Info className="h-4 w-4 text-amber-600" />
-                <AlertTitle className="text-amber-800">Usando dados de exemplo</AlertTitle>
-                <AlertDescription className="text-amber-700">
-                  <p>O aplicativo está configurado para usar dados de exemplo para demonstração.</p>
-                  {envStatus.jiraConnectionError && (
-                    <p className="mt-1 text-xs">Nota: {envStatus.jiraConnectionError}</p>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-          </>
-        )}
-
         <Card className="border-t-4 border-t-primary shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2 mb-2">
