@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 export default function ReportGenerator() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined)
   const [endDate, setEndDate] = useState<Date | undefined>(undefined)
+  const [reportType, setReportType] = useState<string | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [editorUrl, setEditorUrl] = useState<string | null>(null)
@@ -144,6 +145,16 @@ export default function ReportGenerator() {
       return
     }
 
+    if (reportType != 'pix' && reportType != 'of') {
+      setError("É obrigatório selecionar o tipo de relatório.")
+      toast({
+        title: "Campo obrigatório não selecionado",
+        description: "É obrigatório selecionar o tipo de relatório.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setError(null)
     setIsGenerating(true)
     setProgress(0)
@@ -180,6 +191,7 @@ export default function ReportGenerator() {
               dataInicial: startDate.toISOString(),
               dataFinal: endDate.toISOString(),
               period: period,
+              reportType: reportType,
             }),
           })
 
@@ -200,7 +212,7 @@ export default function ReportGenerator() {
 
           // Verificar se os dados têm o campo status
           const hasStatus =
-            data.jiraData?.pix?.some((item) => item.status) || data.jiraData?.openFinance?.some((item) => item.status)
+            data.jiraData?.issues?.some((item) => item.status)
 
           console.log("Os dados têm campo status?", hasStatus)
 
@@ -258,7 +270,7 @@ export default function ReportGenerator() {
       console.error(err)
       setIsGenerating(false)
     }
-  }, [startDate, endDate, toast, getMonthYear])
+  }, [startDate, endDate, reportType, toast, getMonthYear])
 
   // Função para abrir o editor
   const handleOpenEditor = useCallback(() => {
@@ -373,6 +385,32 @@ export default function ReportGenerator() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Selecione o tipo de relatório</label>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="reportType"
+                    value="Pix"
+                    className="form-radio text-primary"
+                    onChange={() => setReportType('pix')}
+                  />
+                  <span>Pix</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="reportType"
+                    value="Open Finance"
+                    className="form-radio text-primary"
+                    onChange={() => setReportType('of')}
+                  />
+                  <span>Open Finance</span>
+                </label>
+              </div>
+            </div>
+
             <AnimatePresence>
               {error && (
                 <motion.div
@@ -451,7 +489,7 @@ export default function ReportGenerator() {
           <CardFooter className="pt-2">
             <Button
               onClick={handleGenerateReport}
-              disabled={isGenerating || !startDate || !endDate || isPending}
+              disabled={isGenerating || !startDate || !endDate || !reportType || isPending}
               className="w-full relative overflow-hidden group"
               size="lg"
             >

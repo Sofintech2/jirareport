@@ -145,7 +145,7 @@ interface GroupedComment {
 }
 
 // Função para gerar o conteúdo inicial do relatório com dados do Jira
-const generateInitialContent = (startDate: string, endDate: string, period: string, jiraData: JiraData) => {
+const generateInitialContent = (startDate: string, endDate: string, period: string, jiraData: JiraData, reportType: string) => {
   console.log("Gerando conteúdo com dados:", JSON.stringify(jiraData, null, 2))
 
   const startDateObj = new Date(startDate)
@@ -232,14 +232,18 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
   }
 
   // Verificar se temos dados válidos
-  const hasPixData = jiraData?.pix && Array.isArray(jiraData.pix) && jiraData.pix.length > 0
-  const hasOFData = jiraData?.openFinance && Array.isArray(jiraData.openFinance) && jiraData.openFinance.length > 0
+  const hasIssue = jiraData?.issues && Array.isArray(jiraData.issues) && jiraData.issues.length > 0
 
-  console.log("Dados válidos:", { hasPixData, hasOFData })
+  console.log("Dados válidos:", { hasIssue })
 
-  // Gerar listas de comentários para Pix e Open Finance
-  const pixComments = generateGroupedCommentsList(jiraData?.pix || [])
-  const ofComments = generateGroupedCommentsList(jiraData?.openFinance || [])
+  // Gerar listas de comentários para o tipo de relatório selecionado
+  console.log(jiraData)
+  const comments = generateGroupedCommentsList(jiraData?.issues || [])
+
+  // Identificar qual tipo de relatório foi selecionado
+  const reportTypeText = reportType == 'pix'
+    ? 'Pix'
+    : 'Open Finance'
 
   return `
     <div class="a4-page">
@@ -270,21 +274,12 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
           </ul>
         </div>
       </div>
-      
+
       <div class="report-section">
-        <h3 class="section-title">Comentários das Atividades - Pix</h3>
+        <h3 class="section-title">Comentários das Atividades - ${reportTypeText}</h3>
         <div class="two-columns">
           <ul class="comments-list">
-            ${pixComments}
-          </ul>
-        </div>
-      </div>
-      
-      <div class="report-section">
-        <h3 class="section-title">Comentários das Atividades - Open Finance</h3>
-        <div class="two-columns">
-          <ul class="comments-list">
-            ${ofComments}
+            ${comments}
           </ul>
         </div>
       </div>
@@ -478,8 +473,9 @@ export default function EditorPage() {
         const startDate = searchParams?.get("startDate") || ""
         const endDate = searchParams?.get("endDate") || ""
         const urlPeriod = searchParams?.get("period") || ""
+        const reportType = searchParams?.get("reportType") || ""
 
-        console.log("Parâmetros da URL:", { startDate, endDate, urlPeriod })
+        console.log("Parâmetros da URL:", { startDate, endDate, urlPeriod, reportType })
 
         // Determinar o período a ser usado
         let period = urlPeriod
@@ -504,7 +500,7 @@ export default function EditorPage() {
           const storedJiraData = sessionStorage.getItem("jiraData")
           if (storedJiraData) {
             const parsedData = JSON.parse(storedJiraData)
-            if (parsedData && (parsedData.pix || parsedData.openFinance)) {
+            if (parsedData && parsedData.issues) {
               jiraData = parsedData
               console.log("Dados do Jira recuperados do sessionStorage:", jiraData)
             } else {
@@ -539,10 +535,10 @@ export default function EditorPage() {
           console.error("Erro ao recuperar datas do sessionStorage:", error)
         }
 
-        console.log("Gerando conteúdo inicial com:", { startDate, endDate, period, jiraData })
+        console.log("Gerando conteúdo inicial com:", { startDate, endDate, period, jiraData, reportType })
 
         // Gerar conteúdo inicial
-        const initialContent = generateInitialContent(startDate, endDate, period, jiraData)
+        const initialContent = generateInitialContent(startDate, endDate, period, jiraData, reportType)
         setContent(initialContent)
 
         // Definir o título com o período dinâmico
