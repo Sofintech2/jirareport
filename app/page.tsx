@@ -145,7 +145,7 @@ export default function ReportGenerator() {
       return
     }
 
-    if (reportType != 'pix' && reportType != 'of') {
+    if (reportType != 'pix' && reportType != 'of' && reportType != 'both') {
       setError("É obrigatório selecionar o tipo de relatório.")
       toast({
         title: "Campo obrigatório não selecionado",
@@ -212,7 +212,7 @@ export default function ReportGenerator() {
 
           // Verificar se os dados têm o campo status
           const hasStatus =
-            data.jiraData?.issues?.some((item) => item.status)
+            data.jiraData?.pix?.some((item) => item.status) || data.jiraData?.openFinance?.some((item) => item.status)
 
           console.log("Os dados têm campo status?", hasStatus)
 
@@ -392,7 +392,7 @@ export default function ReportGenerator() {
                   <input
                     type="radio"
                     name="reportType"
-                    value="Pix"
+                    value="Somente Pix"
                     className="form-radio text-primary"
                     onChange={() => setReportType('pix')}
                   />
@@ -402,11 +402,21 @@ export default function ReportGenerator() {
                   <input
                     type="radio"
                     name="reportType"
-                    value="Open Finance"
+                    value="Somente Open Finance"
                     className="form-radio text-primary"
                     onChange={() => setReportType('of')}
                   />
                   <span>Open Finance</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="reportType"
+                    value="Pix e Open Finance"
+                    className="form-radio text-primary"
+                    onChange={() => setReportType('both')}
+                  />
+                  <span>Pix e Open Finance</span>
                 </label>
               </div>
             </div>

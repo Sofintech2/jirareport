@@ -232,18 +232,48 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
   }
 
   // Verificar se temos dados válidos
-  const hasIssue = jiraData?.issues && Array.isArray(jiraData.issues) && jiraData.issues.length > 0
+  const hasPixData = jiraData?.pix && Array.isArray(jiraData.pix) && jiraData.pix.length > 0
+  const hasOFData = jiraData?.openFinance && Array.isArray(jiraData.openFinance) && jiraData.openFinance.length > 0
 
-  console.log("Dados válidos:", { hasIssue })
+  console.log("Dados válidos:", { hasPixData, hasOFData })
 
-  // Gerar listas de comentários para o tipo de relatório selecionado
-  console.log(jiraData)
-  const comments = generateGroupedCommentsList(jiraData?.issues || [])
+  // Gerar listas de comentários para Pix e Open Finance
+  const pixComments = generateGroupedCommentsList(jiraData?.pix || [])
+  const ofComments = generateGroupedCommentsList(jiraData?.openFinance || [])
 
   // Identificar qual tipo de relatório foi selecionado
-  const reportTypeText = reportType == 'pix'
-    ? 'Pix'
-    : 'Open Finance'
+  const isPix = reportType == 'pix' || reportType == 'both'
+    ? true
+    : false
+  const isOf = reportType == 'of' || reportType == 'both'
+    ? true
+    : false
+
+  // HTML dos comentários referentes a Pix
+  const pixCommentsHtml = `<div class="report-section">
+                             <h3 class="section-title">Comentários das Atividades - Pix</h3>
+                             <div class="two-columns">
+                               <ul class="comments-list">
+                                 ${pixComments}
+                               </ul>
+                             </div>
+                           </div>`
+  // HTML dos comentários referentes a Open Finance
+  const ofCommentsHtml = `<div class="report-section">
+                             <h3 class="section-title">Comentários das Atividades - Open Finance</h3>
+                             <div class="two-columns">
+                               <ul class="comments-list">
+                                 ${ofComments}
+                               </ul>
+                             </div>
+                           </div>`
+
+  //Identificar qual tipo de relatório terá seus comentários exibidos
+  const commentsHtml = reportType == 'pix'
+    ? pixCommentsHtml
+    : reportType == 'of'
+    ? ofCommentsHtml
+    : pixCommentsHtml + ofCommentsHtml
 
   return `
     <div class="a4-page">
@@ -275,14 +305,7 @@ const generateInitialContent = (startDate: string, endDate: string, period: stri
         </div>
       </div>
 
-      <div class="report-section">
-        <h3 class="section-title">Comentários das Atividades - ${reportTypeText}</h3>
-        <div class="two-columns">
-          <ul class="comments-list">
-            ${comments}
-          </ul>
-        </div>
-      </div>
+      ${commentsHtml}
     </div>
     
     <style>
@@ -500,7 +523,7 @@ export default function EditorPage() {
           const storedJiraData = sessionStorage.getItem("jiraData")
           if (storedJiraData) {
             const parsedData = JSON.parse(storedJiraData)
-            if (parsedData && parsedData.issues) {
+            if (parsedData && (parsedData.pix || parsedData.openFinance)) {
               jiraData = parsedData
               console.log("Dados do Jira recuperados do sessionStorage:", jiraData)
             } else {

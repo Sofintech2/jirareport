@@ -155,9 +155,12 @@ function generateRealisticMockData(startDate: Date, endDate: Date, reportType: s
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
   // Gerar um número aleatório de issues com base no período
-  const numIssues = reportType == 'pix'
+  const numPixIssues = reportType == 'pix' || reportType == 'both'
     ? Math.min(Math.max(Math.floor(diffDays / 3), 2), 10)
-    : Math.min(Math.max(Math.floor(diffDays / 4), 2), 8)
+    : 0
+  const numOFIssues = reportType == 'of' || reportType == 'both'
+    ? Math.min(Math.max(Math.floor(diffDays / 4), 2), 8)
+    : 0
 
   // Status possíveis para as atividades
   const statusOptions: IssueStatus[] = ["Em Progresso", "Pronto para Teste", "Concluído"]
@@ -318,12 +321,13 @@ function generateRealisticMockData(startDate: Date, endDate: Date, reportType: s
     }
   }
 
-  // Gerar issues
-  const issues = Array.from({ length: numIssues }, (_, i) =>
-    reportType == 'pix'
-      ? generateIssue("PIX", i, pixSummaries, pixDescriptions)
-      : generateIssue("OF", i, ofSummaries, ofDescriptions)
+  // Gerar issues do Pix
+  const pixIssues = Array.from({ length: numPixIssues }, (_, i) =>
+    generateIssue("PIX", i, pixSummaries, pixDescriptions),
   )
+
+  // Gerar issues do Open Finance
+  const ofIssues = Array.from({ length: numOFIssues }, (_, i) => generateIssue("OF", i, ofSummaries, ofDescriptions))
 
   // Garantir que temos pelo menos um comentário em todas as datas do período selecionado
   // Função para adicionar comentários em datas sem comentário
@@ -365,16 +369,24 @@ function generateRealisticMockData(startDate: Date, endDate: Date, reportType: s
   }
 
   // Adicionar comentários para algumas issues em dias sem comentário
-  if (issues.length > 0) addCommentOnRemainingDays(issues)
+  if (pixIssues.length > 0) addCommentOnRemainingDays(pixIssues)
+  if (ofIssues.length > 0) addCommentOnRemainingDays(ofIssues)
 
   // Ordenar as issues por data (mais recentes primeiro)
-  issues.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+  pixIssues.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+  ofIssues.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
 
   // Garantir que temos pelo menos uma atividade de cada status para demonstração
-  if (issues.length >= 3) {
-    issues[0].status = "Em Progresso"
-    issues[1].status = "Pronto para Teste"
-    issues[2].status = "Concluído"
+  if (pixIssues.length >= 3) {
+    pixIssues[0].status = "Em Progresso"
+    pixIssues[1].status = "Pronto para Teste"
+    pixIssues[2].status = "Concluído"
+  }
+
+  if (ofIssues.length >= 3) {
+    ofIssues[0].status = "Em Progresso"
+    ofIssues[1].status = "Pronto para Teste"
+    ofIssues[2].status = "Concluído"
   }
 
   // Adicionar comentários extras para algumas datas para demonstrar múltiplos comentários na mesma data
@@ -416,18 +428,23 @@ function generateRealisticMockData(startDate: Date, endDate: Date, reportType: s
 
   // Adicionar comentários extras para algumas issues
   for (let i = 0; i < 3; i++) {
-    if (issues.length > 0) addExtraCommentsOnSameDay(issues)
+    if (pixIssues.length > 0) addExtraCommentsOnSameDay(pixIssues)
+    if (ofIssues.length > 0) addExtraCommentsOnSameDay(ofIssues)
   }
 
   console.log("Dados mockados gerados:", {
-    issues: issues.length,
-    statuses: issues.map((i) => i.status),
+    pix: pixIssues.length,
+    openFinance: ofIssues.length,
+    pixStatuses: pixIssues.map((i) => i.status),
+    ofStatuses: ofIssues.map((i) => i.status),
     totalComments:
-      issues.reduce((acc, issue) => acc + issue.comments.length, 0)
+      pixIssues.reduce((acc, issue) => acc + issue.comments.length, 0) +
+      ofIssues.reduce((acc, issue) => acc + issue.comments.length, 0),
   })
 
   return {
-    issues: issues
+    pix: pixIssues,
+    openFinance: ofIssues,
   }
 }
 
